@@ -16,23 +16,11 @@ namespace reversi
         public Form1()
         {
             InitializeComponent();
-            this.generateStartingGrid();
-            this.gameArea.Paint += Utilities.GenerateGrid;
+            GameManager.generateStartingGrid();
+            this.gameArea.Paint += VisualUtilities.GenerateGrid;
+            this.GameControls.Paint += VisualUtilities.generateDiscInfo;
         }
-
-        private void generateStartingGrid()
-        {
-            //TODO: Check if this breaks when you put an uneven wide grid
-            int width = Globals.internalGameArea.GetLength(0) / 2 - 1;
-            int height = Globals.internalGameArea.GetLength(1) / 2 - 1;
-            //Red starting circles
-            Globals.internalGameArea[width, height] = 1;
-            Globals.internalGameArea[width + 1, height + 1] = 1;
-            //Blue starting circles
-            Globals.internalGameArea[width + 1, height] = 2;
-            Globals.internalGameArea[width, height + 1] = 2;
-        }
-        //Just going to create an area
+        
         private void gameAreaClick(object sender, MouseEventArgs e)
         {
             var p = sender as Panel;
@@ -41,24 +29,83 @@ namespace reversi
             int x = e.X;
             int y = e.Y;
             //The 6.0 means the amount of grids
-            int mappedX = (int)(Math.Floor(6.0 / p.Size.Width * x));
-            int mappedY = (int)(Math.Floor(6.0 / p.Size.Height * y));
+            int mappedX = (int)(Math.Floor((float)GameManager.width / p.Size.Width * x));
+            int mappedY = (int)(Math.Floor((float)GameManager.height / p.Size.Height * y));
             //Prevent users from overriding a filled box
-            if (Globals.internalGameArea[mappedX, mappedY] != 0)
+            if (GameManager.internalGameArea[mappedX, mappedY] != Tile.TILE_EMPTY)
             {
                 return;
             }
 
-            if (!Utilities.validMove(mappedX, mappedY))
+            bool a = MoveManager.moveValidator(mappedX, mappedY);
+
+            if (!a)
             {
                 return;
+            } else
+            {
+                //For some reason the validator sometimes bugs out
+                GameManager.endTurn();
+
+                if (Utilities.gameFinished())
+                {
+                    this.label1.Text = VisualUtilities.winnerText();
+                } else
+                {
+                    this.label1.Text = VisualUtilities.changeTurnText();
+                }
+
+                this.updateDiscInfo();
+                this.gameArea.Invalidate();
+
             }
-
-            Globals.internalGameArea[mappedX, mappedY] = 1;
-
-            this.gameArea.Invalidate();
 
             return;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void start_MouseClick(object sender, MouseEventArgs e)
+        {
+            GameManager.generateStartingGrid();
+            this.gameArea.Paint += VisualUtilities.GenerateGrid;
+            this.gameArea.Invalidate();
+
+            this.label1.Text = VisualUtilities.changeTurnText();
+
+            this.updateDiscInfo();
+
+            return;
+        }
+
+        public void updateDiscInfo()
+        {
+            List<Players> players = new List<Players>() { Players.PLAYERS_BLUE, Players.PLAYERS_RED };
+
+            foreach (Players player in players)
+            {
+                int count = GameManager.countDiscs(player);
+
+                string text = $"{count.ToString()} stenen";
+
+                switch (player)
+                {
+                    case Players.PLAYERS_BLUE:
+                        this.blueDiscs.Text = text;
+                        break;
+                    case Players.PLAYERS_RED:
+                        this.redDiscs.Text = text;
+                        break;
+                }
+            }
+        }
+
+        private void help_MouseClick(object sender, MouseEventArgs e)
+        {
+            GameManager.help = !GameManager.help;
         }
     }
 }
