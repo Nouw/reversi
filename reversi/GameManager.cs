@@ -20,11 +20,15 @@ namespace reversi
     }
     internal class GameManager
     {
-        public const int width = 100;
-        public const int height = 100;
+        /*
+         * Columns should be bigger than 3 and smaller 25
+         * Rows should be bigger than 3 and smaller than 21
+         */
+        public const int columns = 3;
+        public const int rows = 3;
 
         public static Players playerTurn = Players.PLAYERS_BLUE;
-        public static Tile[,] internalGameArea = new Tile[width, height];
+        public static Tile[,] internalGameArea = new Tile[columns, rows];
         public static bool help = false;
 
         /// <summary>
@@ -32,15 +36,20 @@ namespace reversi
         /// </summary>
         public static void generateStartingGrid()
         {
-            GameManager.internalGameArea = new Tile[GameManager.width, GameManager.height];
-
-            if (GameManager.width < 3 || GameManager.height < 3)
+            GameManager.internalGameArea = new Tile[GameManager.columns, GameManager.rows];
+            //Prevent the user from inputting too small of a field
+            if (GameManager.columns < 3 || GameManager.rows < 3)
             {
-                Console.Error.WriteLine("Width or height are incorrect, should be >=3");
+                Console.Error.WriteLine("Rows or Columns are incorrect, should be >= 3");
+                return;
+            } 
+            //Prevent the player from inputting too big of a field
+            else if (GameManager.columns > 24 || GameManager.rows > 20)
+            {
+                Console.Error.WriteLine("Rows should be < 20 and columns should be < 20");
                 return;
             }
-
-            //TODO: Check if this breaks when you put an uneven wide grid
+            
             int width = GameManager.internalGameArea.GetLength(0) / 2 - 1;
             int height = GameManager.internalGameArea.GetLength(1) / 2 - 1;
             //Blue starting circles

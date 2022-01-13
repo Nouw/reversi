@@ -10,9 +10,10 @@ using System.Windows.Forms;
 
 namespace reversi
 {
-    //TODO: Change color to enums
     public partial class Form1 : Form
     {
+        bool started = false;
+
         public Form1()
         {
             InitializeComponent();
@@ -25,12 +26,12 @@ namespace reversi
         {
             var p = sender as Panel;
 
-            //Map the cords to 0, 6
+            //Map the cords to 0 -> columns / rows
             int x = e.X;
             int y = e.Y;
-            //The 6.0 means the amount of grids
-            int mappedX = (int)(Math.Floor((float)GameManager.width / p.Size.Width * x));
-            int mappedY = (int)(Math.Floor((float)GameManager.height / p.Size.Height * y));
+
+            int mappedX = (int)(Math.Floor((float)GameManager.columns / p.Size.Width * x));
+            int mappedY = (int)(Math.Floor((float)GameManager.rows / p.Size.Height * y));
             //Prevent users from overriding a filled box
             if (GameManager.internalGameArea[mappedX, mappedY] != Tile.TILE_EMPTY)
             {
@@ -47,13 +48,26 @@ namespace reversi
                 //For some reason the validator sometimes bugs out
                 GameManager.endTurn();
 
-                if (Utilities.gameFinished())
+                if (Utilities.gameFinished() || timeRed.Text == "0:00" || timeBlue.Text == "0:00")
                 {
-                    this.label1.Text = VisualUtilities.winnerText();
-                } else
-                {
-                    this.label1.Text = VisualUtilities.changeTurnText();
+                    this.timer1.Enabled = false;
+                    this.gameText.Text = VisualUtilities.winnerText();
+                    this.started = false;
+                    this.timer1.Stop();
                 }
+                else
+                {
+                    this.gameText.Text = VisualUtilities.changeTurnText();
+
+                    if (!started)
+                    {
+                        started = true;
+                        timer1.Enabled = true;
+                        timer1.Interval = 1000;
+                    }
+                }
+
+
 
                 this.updateDiscInfo();
                 this.gameArea.Invalidate();
@@ -74,7 +88,8 @@ namespace reversi
             this.gameArea.Paint += VisualUtilities.GenerateGrid;
             this.gameArea.Invalidate();
 
-            this.label1.Text = VisualUtilities.changeTurnText();
+            this.gameText.Text = VisualUtilities.changeTurnText();
+            this.started = false;
 
             this.updateDiscInfo();
 
@@ -106,6 +121,24 @@ namespace reversi
         private void help_MouseClick(object sender, MouseEventArgs e)
         {
             GameManager.help = !GameManager.help;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (started)
+            {
+                Players player = GameManager.playerTurn;
+
+                switch (player)
+                {
+                    case Players.PLAYERS_BLUE:
+                        timeBlue.Text = VisualUtilities.updateTime(timeBlue.Text);
+                        break;
+                    case Players.PLAYERS_RED:
+                        timeRed.Text = VisualUtilities.updateTime(timeRed.Text);
+                        break;
+                }
+            }
         }
     }
 }

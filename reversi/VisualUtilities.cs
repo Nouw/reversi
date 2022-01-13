@@ -22,8 +22,8 @@ namespace reversi
             var p = sender as Panel;
             var g = e.Graphics;
 
-            int height = p.Size.Height / GameManager.height;
-            int width = p.Size.Width / GameManager.width;
+            int height = p.Size.Height / GameManager.rows;
+            int width = p.Size.Width / GameManager.columns;
 
             Pen pen = new Pen(Color.Black, 1);
             //Loop through x cords
@@ -146,6 +146,31 @@ namespace reversi
             }
 
             return $"{winner} is de winnaar!";
+        }
+        /// <summary>
+        /// Update the timer of the player
+        /// </summary>
+        /// <param name="current">the text of the timer</param>
+        /// <returns></returns>
+        public static string updateTime(string current)
+        {
+            int minutes = int.Parse(current.Split(':')[0]);
+            int seconds = int.Parse(current.Split(':')[1]);
+
+            if (seconds == 0 && minutes != 0)
+            {
+                minutes--;
+                seconds = 59;
+            }
+            else if (minutes == 0 && seconds == 0)
+            {
+                return "0:00";
+            }
+            {
+                seconds--;
+            }
+
+            return $"{minutes} : {seconds}";
         }
     }
 }
